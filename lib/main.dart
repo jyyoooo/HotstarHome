@@ -1,13 +1,11 @@
+import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/widgets.dart';
-import 'package:hotstar/colors.dart';
-import 'package:hotstar/widgets/card_item.dart';
+import 'package:flutter/rendering.dart';
 import 'package:hotstar/widgets/custom_button.dart';
 import 'package:hotstar/widgets/custom_fab.dart';
 import 'package:hotstar/widgets/shimmer_button.dart';
-
 import 'widgets/number_card.dart';
 
 void main() {
@@ -26,13 +24,13 @@ class DisneyHotstarApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         brightness: Brightness.dark,
       ),
-      home: const HomePage(),
+      home: HomePage(),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  HomePage({super.key});
 
   @override
   HomePageState createState() => HomePageState();
@@ -41,15 +39,60 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   int _currentCarouselIndex = 0;
+  bool showMoreOnly = false;
+
+  final ScrollController _scrollController = ScrollController();
+  bool _isAppBarTransparent = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    final scrollPosition = _scrollController.position.pixels;
+    final scrollDirection = _scrollController.position.userScrollDirection;
+
+    if (scrollPosition <= 0) {
+      if (!_isAppBarTransparent) {
+        setState(() {
+          log('not transparent');
+          _isAppBarTransparent = true;
+        });
+      }
+    } else if (scrollDirection == ScrollDirection.forward) {
+      if (_isAppBarTransparent) {
+        log('forward');
+        setState(() {
+          _isAppBarTransparent = false;
+        });
+      }
+    } else {
+      if (!_isAppBarTransparent) {
+        setState(() {
+          _isAppBarTransparent = true;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         body: CustomScrollView(
+          scrollBehavior: const CupertinoScrollBehavior(),
           physics: const BouncingScrollPhysics(),
+          controller: _scrollController,
           slivers: [
-            _buildTransparentSliverAppBar(),
+            _buildSliverAppBar(),
             _buildCarouselHeader(),
             _buildHorizontalListSection('Trending Now',
                 'https://image.tmdb.org/t/p/w600_and_h900_bestv2/gdIrmf2DdY5mgN6ycVP0XlzKzbE.jpg'),
@@ -59,95 +102,22 @@ class HomePageState extends State<HomePage> {
                 firstText: 'Free ', isNew: true),
             _buildHorizontalListSection('New Releases',
                 'https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ygmJUf1cCmdye5eyKqLxHsxAJDS.jpg'),
+            _buildHorizontalListSection('Popular Shows',
+                'https://www.themoviedb.org/t/p/w600_and_h900_bestv2/dDBTUSl3tRsOeKC1jZugBSFHy9I.jpg',
+                firstText: 'Free ', isNew: true),
+            _buildHorizontalListSection('New Releases',
+                'https://www.themoviedb.org/t/p/w600_and_h900_bestv2/ygmJUf1cCmdye5eyKqLxHsxAJDS.jpg'),
           ],
         ),
         floatingActionButtonLocation:
             FloatingActionButtonLocation.miniCenterFloat,
-        floatingActionButton: CustomFAB(
-          actions: [
-            TextButton(onPressed: () {}, child: const Text('TV', style: style)),
-            TextButton(
-                onPressed: () {}, child: const Text('Movies', style: style)),
-            TextButton(
-                onPressed: () {}, child: const Text('Sports', style: style)),
-            TextButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    showDragHandle: true,
-                    context: context,
-                    builder: (context) {
-                      return _showModalSheetItems(context);
-                    },
-                  );
-                },
-                child: const Row(
-                  children: [
-                    Text('More', style: style),
-                    Icon(
-                      Icons.keyboard_arrow_up_rounded,
-                      color: Colors.white,
-                    )
-                  ],
-                ))
-          ],
-        ),
+        floatingActionButton: const CustomFAB(),
         bottomNavigationBar: _buildBottomNavigationBar(),
       ),
     );
   }
 
-  // REFACTORED WIDGETS
-
-  Container _showModalSheetItems(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 1,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              _gridViewModalSheetItems(),
-              logoListViewHorizontal(
-                  'Logo',
-                  'https://s3.amazonaws.com/cdn.designcrowd.com/blog/40-Famous-Film-Company-Logos/Pixar.png',
-                  Colors.black87),
-              logoListViewHorizontal(
-                  'Logo',
-                  'https://s3.amazonaws.com/cdn.designcrowd.com/blog/40-Famous-Film-Company-Logos/Disney.png',
-                  Colors.black87),
-              logoListViewHorizontal(
-                  'Logo',
-                  'https://s3.amazonaws.com/cdn.designcrowd.com/blog/40-Famous-Film-Company-Logos/Metro-Goldwyn-Mayer.png',
-                  Colors.black87),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  GridView _gridViewModalSheetItems() {
-    return GridView.builder(
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 1.2 / .8,
-      ),
-      shrinkWrap: true,
-      itemCount: 6,
-      itemBuilder: (context, index) {
-        return const CardItem(
-          imageUrl:
-              'https://s3.amazonaws.com/cdn.designcrowd.com/blog/40-Famous-Film-Company-Logos/Metro-Goldwyn-Mayer.png',
-          color: Colors.black,
-        );
-      },
-    );
-  }
-
-  Widget _buildTransparentSliverAppBar() {
+  SliverOverlapAbsorber _buildSliverAppBar() {
     return SliverOverlapAbsorber(
       handle: SliverOverlapAbsorberHandle(),
       sliver: SliverAppBar(
@@ -156,7 +126,8 @@ class HomePageState extends State<HomePage> {
         expandedHeight: 57,
         floating: true,
         pinned: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor:
+            _isAppBarTransparent ? Colors.transparent : Colors.grey[900],
         flexibleSpace: FlexibleSpaceBar(
           background: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -184,6 +155,8 @@ class HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  // REFACTORED WIDGETS
 
   Widget _buildCarouselHeader() {
     return SliverToBoxAdapter(
@@ -519,33 +492,4 @@ class HomePageState extends State<HomePage> {
       unselectedItemColor: Colors.grey,
     );
   }
-}
-
-Widget logoListViewHorizontal(String title, String imageUrl, Color color) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Text(
-          'Popular',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-      ),
-      SizedBox(
-        height: 80,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: 6,
-          itemBuilder: (context, index) {
-            return CardItem(
-              title: title,
-              imageUrl: imageUrl,
-              color: color,
-            );
-          },
-        ),
-      ),
-    ],
-  );
 }

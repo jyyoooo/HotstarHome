@@ -2,24 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hotstar/colors.dart';
 import 'package:shimmer/shimmer.dart';
 
-final kInnerDecoration = BoxDecoration(
-  color: Colors.transparent,
-  border: Border.all(color: Colors.transparent),
-  borderRadius: BorderRadius.circular(5),
-);
-
-final kGradientBoxDecoration = BoxDecoration(
-  gradient: LinearGradient(colors: [
-    Colors.black38.withOpacity(.7),
-    gold,
-    Colors.black38.withOpacity(.7)
-  ]),
-  border: Border.all(width: .3,
-    color: Colors.transparent,
-  ),
-  borderRadius: BorderRadius.circular(5),
-);
-
 class ShimmerButton extends StatelessWidget {
   const ShimmerButton({
     super.key,
@@ -94,6 +76,26 @@ class ShimmerButton extends StatelessWidget {
     );
   }
 }
+
+final kInnerDecoration = BoxDecoration(
+  color: Colors.transparent,
+  border: Border.all(color: Colors.transparent),
+  borderRadius: BorderRadius.circular(5),
+);
+
+final kGradientBoxDecoration = BoxDecoration(
+  gradient: LinearGradient(colors: [
+    Colors.black38.withOpacity(.7),
+    gold,
+    Colors.black38.withOpacity(.7)
+  ]),
+  border: Border.all(
+    width: .3,
+    color: Colors.transparent,
+  ),
+  borderRadius: BorderRadius.circular(5),
+);
+
 
 // class ShimmerButton extends StatelessWidget {
 //   const ShimmerButton({
